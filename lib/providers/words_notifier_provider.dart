@@ -9,9 +9,16 @@ part 'words_notifier_provider.g.dart';
 @riverpod
 class WordsNotifier extends _$WordsNotifier {
   @override
-  Stream<Iterable<Word>> build() async* {
+  Stream<List<Word>> build() async* {
     final wordsRepository = await ref.watch(wordsRepositoryProvider.future);
-    yield* wordsRepository.getWords();
+    final user = await ref.watch(authenticationNotifierProvider.future);
+    if (user == null) {
+      throw Exception('You need to be signed in to fetch favorite words');
+    }
+    
+    yield* wordsRepository.getWords(userID: user.id).map(
+          (words) => words.toList(),
+        );
   }
 
   Future<void> addWord({required String word}) async {

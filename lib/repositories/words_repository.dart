@@ -12,11 +12,11 @@ class WordsRepository {
 
   final SupabaseClient supabaseClient;
 
-  Stream<Iterable<Word>> getWords() {
+  Stream<Iterable<Word>> getWords({required String userID}) {
     return supabaseClient
         .from('words')
         .stream(primaryKey: ['id'])
-        .eq('is_active', true)
+        .eq('user_id', userID)
         .map(
           (wordsJson) => wordsJson.map(Word.fromJson),
         );
