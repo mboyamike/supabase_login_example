@@ -11,9 +11,8 @@ class Assets {
   const Assets._();
 
   static const String aEnv = '.env';
-  static const String animation = 'assets/Animation.lottie';
   static const String undrawVoidWez2 = 'assets/undraw_void_wez2.svg';
 
   /// List of all assets
-  static List<String> get values => [aEnv, animation, undrawVoidWez2];
+  static List<String> get values => [aEnv, undrawVoidWez2];
 }
