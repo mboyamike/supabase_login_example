@@ -1,24 +1,28 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_login_example/helpers/validators.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../helpers/helpers.dart';
+import '../../providers/providers.dart';
+import '../router/app_router.gr.dart';
 import '../theme/theme.dart';
 
 @RoutePage()
-class SignUpScreen extends StatefulWidget {
+class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
 
   static const path = '/auth/sign_up';
 
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  ConsumerState<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -31,7 +35,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     final spacing = context.spacing;
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
 
     return Scaffold(
       body: SafeArea(
@@ -82,13 +87,64 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 SizedBox(height: spacing.lg),
                 ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {}
+                  onPressed: () async {
+                    if (_isLoading) {
+                      return;
+                    }
+                    if (_formKey.currentState!.validate()) {
+                      setState(() {
+                        _isLoading = true;
+                      });
+
+                      final email = _emailController.text.trim();
+                      final password = _passwordController.text.trim();
+                      final scaffoldMessengerState =
+                          ScaffoldMessenger.of(context);
+                      try {
+                        await ref
+                            .read(authenticationNotifierProvider.notifier)
+                            .signUp(
+                              email: email,
+                              password: password,
+                            );
+                      } catch (e, stackTrace) {
+                        logger.e(
+                          'Error signing up',
+                          error: e,
+                          stackTrace: stackTrace,
+                        );
+                        // Show error to user
+                        scaffoldMessengerState.showSnackBar(
+                          const SnackBar(
+                            content: Text('Failed to sign up'),
+                          ),
+                        );
+                      } finally {
+                        if (mounted) {
+                          setState(() {
+                            _isLoading = false;
+                          });
+                        }
+                      }
+                    }
                   },
                   child: Padding(
                     padding: EdgeInsets.symmetric(vertical: spacing.sm),
-                    child: const Text(
-                      'Sign Up',
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Sign Up'),
+                        if (_isLoading) ...[
+                          SizedBox(width: context.spacing.md),
+                          SizedBox.square(
+                            dimension: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: theme.colorScheme.primary,
+                            ),
+                          )
+                        ],
+                      ],
                     ),
                   ),
                 ),
@@ -101,11 +157,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       style: textTheme.bodyMedium,
                     ),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () =>
+                          context.router.replace(const SignInRoute()),
                       child: Text(
                         'Sign In',
                         style: textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
+                          color: theme.colorScheme.primary,
                         ),
                       ),
                     ),
