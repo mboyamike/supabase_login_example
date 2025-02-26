@@ -14,7 +14,7 @@ class WordsNotifier extends _$WordsNotifier {
     final userID = await ref.watch(
       authenticationNotifierProvider.selectAsync((user) => user?.id),
     );
-    
+
     if (userID == null) {
       throw Exception('You need to be signed in to fetch favorite words');
     }
@@ -32,7 +32,27 @@ class WordsNotifier extends _$WordsNotifier {
       throw Exception('Must be signed in to add a word');
     }
 
-    return wordsRepository.addWord(word: word, userID: user.id);
+    final now = DateTime.now();
+    final optimisticWord = Word(
+      id: -now.millisecondsSinceEpoch, // Temporary negative ID
+      word: word,
+      userID: user.id,
+    );
+
+    state = AsyncData([...state.value ?? [], optimisticWord]);
+
+    try {
+      await wordsRepository.addWord(word: word, userID: user.id);
+    } catch (e) {
+      // If there's an error, revert the optimistic update
+      if (state.hasValue) {
+        state = AsyncData(
+          state.value!.where((w) => w.id != optimisticWord.id).toList(),
+        );
+      }
+      
+      rethrow;
+    }
   }
 
   Future<void> deleteWord({required int id}) async {

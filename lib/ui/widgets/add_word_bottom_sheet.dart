@@ -16,8 +16,6 @@ class AddWordBottomSheet extends ConsumerStatefulWidget {
 class _AddWordBottomSheetState extends ConsumerState<AddWordBottomSheet> {
   final _formKey = GlobalKey<FormState>();
   final _wordController = TextEditingController();
-  bool _isLoading = false;
-  String? _errorMessage;
 
   @override
   void dispose() {
@@ -29,19 +27,14 @@ class _AddWordBottomSheetState extends ConsumerState<AddWordBottomSheet> {
     if (!_formKey.currentState!.validate()) return;
 
     final navigator = Navigator.of(context);
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final wordsNotifier = ref.read(wordsNotifierProvider.notifier);
 
     try {
-      await ref.read(wordsNotifierProvider.notifier).addWord(
-            word: _wordController.text.trim(),
-          );
-      if (mounted) {
-        navigator.pop();
-      }
+      navigator.pop();
+      await wordsNotifier.addWord(
+        word: _wordController.text.trim(),
+      );
     } catch (e, stackTrace) {
       logger.e(
         'Error adding a word',
@@ -55,15 +48,11 @@ class _AddWordBottomSheetState extends ConsumerState<AddWordBottomSheet> {
           {'screen': 'add_word_bottom_sheet'},
         ),
       );
-      setState(() {
-        _errorMessage = e.toString();
-      });
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text('Failed to add word: ${e.toString()}'),
+        ),
+      );
     }
   }
 
@@ -106,24 +95,10 @@ class _AddWordBottomSheetState extends ConsumerState<AddWordBottomSheet> {
                 return null;
               },
             ),
-            if (_errorMessage != null) ...[
-              SizedBox(height: context.spacing.xs),
-              Text(
-                _errorMessage!,
-                style: TextStyle(color: theme.colorScheme.error),
-                textAlign: TextAlign.center,
-              ),
-            ],
             SizedBox(height: context.spacing.md),
             ElevatedButton(
-              onPressed: _isLoading ? null : _submitWord,
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Add Word'),
+              onPressed: _submitWord,
+              child: const Text('Add Word'),
             ),
           ],
         ),
