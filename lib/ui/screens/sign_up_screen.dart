@@ -143,103 +143,105 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
     return Form(
       key: _formKey,
       child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextFormField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Email',
+        child: AutofillGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextFormField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                ),
+                validator: Validators.emailValidator,
+                textInputAction: TextInputAction.next,
+                onTapOutside: (_) => FocusScope.of(context).unfocus(),
+                onFieldSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_passwordFocusNode);
+                },
+                autofillHints: const [AutofillHints.email],
               ),
-              validator: Validators.emailValidator,
-              textInputAction: TextInputAction.next,
-              onTapOutside: (_) => FocusScope.of(context).unfocus(),
-              onFieldSubmitted: (_) {
-                FocusScope.of(context).requestFocus(_passwordFocusNode);
-              },
-              autofillHints: const [AutofillHints.email],
-            ),
-            SizedBox(height: spacing.md),
-            TextFormField(
-              controller: _passwordController,
-              focusNode: _passwordFocusNode,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Password',
+              SizedBox(height: spacing.md),
+              TextFormField(
+                controller: _passwordController,
+                focusNode: _passwordFocusNode,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                ),
+                validator: Validators.passwordValidator,
+                textInputAction: TextInputAction.next,
+                onTapOutside: (_) => FocusScope.of(context).unfocus(),
+                autofillHints: const [AutofillHints.newPassword],
+                onFieldSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_confirmPasswordFocusNode);
+                },
               ),
-              validator: Validators.passwordValidator,
-              textInputAction: TextInputAction.next,
-              onTapOutside: (_) => FocusScope.of(context).unfocus(),
-              autofillHints: const [AutofillHints.newPassword],
-              onFieldSubmitted: (_) {
-                FocusScope.of(context).requestFocus(_confirmPasswordFocusNode);
-              },
-            ),
-            SizedBox(height: spacing.md),
-            TextFormField(
-              controller: _confirmPasswordController,
-              focusNode: _confirmPasswordFocusNode,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Confirm Password',
+              SizedBox(height: spacing.md),
+              TextFormField(
+                controller: _confirmPasswordController,
+                focusNode: _confirmPasswordFocusNode,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Confirm Password',
+                ),
+                validator: (value) {
+                  if (value != _passwordController.text) {
+                    return 'Passwords do not match';
+                  }
+                  return Validators.passwordValidator(value);
+                },
+                textInputAction: TextInputAction.done,
+                onTapOutside: (_) => FocusScope.of(context).unfocus(),
+                autofillHints: const [AutofillHints.newPassword],
+                onFieldSubmitted: (_) => _handleSignUp(),
               ),
-              validator: (value) {
-                if (value != _passwordController.text) {
-                  return 'Passwords do not match';
-                }
-                return Validators.passwordValidator(value);
-              },
-              textInputAction: TextInputAction.done,
-              onTapOutside: (_) => FocusScope.of(context).unfocus(),
-              autofillHints: const [AutofillHints.newPassword],
-              onFieldSubmitted: (_) => _handleSignUp(),
-            ),
-            SizedBox(height: spacing.lg),
-            ElevatedButton(
-              onPressed: _handleSignUp,
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: spacing.sm),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Sign Up'),
-                    if (_isLoading) ...[
-                      SizedBox(width: context.spacing.md),
-                      SizedBox.square(
-                        dimension: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: theme.colorScheme.primary,
-                        ),
-                      )
+              SizedBox(height: spacing.lg),
+              ElevatedButton(
+                onPressed: _handleSignUp,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: spacing.sm),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Sign Up'),
+                      if (_isLoading) ...[
+                        SizedBox(width: context.spacing.md),
+                        SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: theme.colorScheme.primary,
+                          ),
+                        )
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: spacing.md),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Already have an account?',
-                  style: textTheme.bodyMedium,
-                ),
-                TextButton(
-                  onPressed: () => context.router.replaceAll(
-                    [const SignInRoute()],
+              SizedBox(height: spacing.md),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Already have an account?',
+                    style: textTheme.bodyMedium,
                   ),
-                  child: Text(
-                    'Sign In',
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.primary,
+                  TextButton(
+                    onPressed: () => context.router.replaceAll(
+                      [const SignInRoute()],
+                    ),
+                    child: Text(
+                      'Sign In',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

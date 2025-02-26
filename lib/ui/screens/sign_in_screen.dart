@@ -76,6 +76,7 @@ class _SignInFormState extends ConsumerState<SignInForm> {
     if (_isLoading) {
       return;
     }
+
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
@@ -141,82 +142,84 @@ class _SignInFormState extends ConsumerState<SignInForm> {
     return SingleChildScrollView(
       child: Form(
         key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextFormField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Email',
+        child: AutofillGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextFormField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                ),
+                validator: Validators.emailValidator,
+                textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.email],
+                onTapOutside: (_) => FocusScope.of(context).unfocus(),
+                onFieldSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_passwordFocusNode);
+                },
               ),
-              validator: Validators.emailValidator,
-              textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.email],
-              onTapOutside: (_) => FocusScope.of(context).unfocus(),
-              onFieldSubmitted: (_) {
-                FocusScope.of(context).requestFocus(_passwordFocusNode);
-              },
-            ),
-            SizedBox(height: spacing.md),
-            TextFormField(
-              controller: _passwordController,
-              focusNode: _passwordFocusNode,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Password',
+              SizedBox(height: spacing.md),
+              TextFormField(
+                controller: _passwordController,
+                focusNode: _passwordFocusNode,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                ),
+                textInputAction: TextInputAction.done,
+                autofillHints: const [AutofillHints.password],
+                onTapOutside: (_) => FocusScope.of(context).unfocus(),
+                onFieldSubmitted: (_) => _handleSignIn(),
+                validator: Validators.passwordValidator,
               ),
-              textInputAction: TextInputAction.done,
-              autofillHints: const [AutofillHints.password],
-              onTapOutside: (_) => FocusScope.of(context).unfocus(),
-              onFieldSubmitted: (_) => _handleSignIn(),
-              validator: Validators.passwordValidator,
-            ),
-            SizedBox(height: spacing.lg),
-            ElevatedButton(
-              onPressed: _handleSignIn,
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: spacing.sm),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Sign In'),
-                    if (_isLoading) ...[
-                      SizedBox(width: spacing.md),
-                      SizedBox.square(
-                        dimension: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: theme.colorScheme.primary,
-                        ),
-                      )
+              SizedBox(height: spacing.lg),
+              ElevatedButton(
+                onPressed: _handleSignIn,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: spacing.sm),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Sign In'),
+                      if (_isLoading) ...[
+                        SizedBox(width: spacing.md),
+                        SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: theme.colorScheme.primary,
+                          ),
+                        )
+                      ],
                     ],
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: spacing.md),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Don't have an account?",
-                  style: textTheme.bodyMedium,
-                ),
-                TextButton(
-                  onPressed: () {
-                    context.router.replace(const SignUpRoute());
-                  },
-                  child: Text(
-                    'Sign Up',
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
                   ),
                 ),
-              ],
-            ),
-          ],
+              ),
+              SizedBox(height: spacing.md),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Don't have an account?",
+                    style: textTheme.bodyMedium,
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      context.router.replace(const SignUpRoute());
+                    },
+                    child: Text(
+                      'Sign Up',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
