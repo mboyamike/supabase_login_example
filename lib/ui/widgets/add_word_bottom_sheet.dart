@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../helpers/helpers.dart';
 import '../../providers/words_notifier_provider.dart';
@@ -42,7 +43,18 @@ class _AddWordBottomSheetState extends ConsumerState<AddWordBottomSheet> {
         navigator.pop();
       }
     } catch (e, stackTrace) {
-      logger.e('Error adding a word', error: e, stackTrace: stackTrace);
+      logger.e(
+        'Error adding a word',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      Sentry.captureException(
+        e,
+        stackTrace: stackTrace,
+        hint: Hint.withMap(
+          {'screen': 'add_word_bottom_sheet'},
+        ),
+      );
       setState(() {
         _errorMessage = e.toString();
       });

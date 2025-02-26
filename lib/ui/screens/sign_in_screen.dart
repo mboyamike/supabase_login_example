@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../helpers/helpers.dart';
 import '../../providers/providers.dart';
@@ -121,7 +122,7 @@ class _SignInFormState extends ConsumerState<SignInForm> {
                           email: email,
                           password: password,
                         );
-                        
+
                     if (response.user != null && mounted) {
                       router.replace(const HomeRoute());
                     }
@@ -131,12 +132,21 @@ class _SignInFormState extends ConsumerState<SignInForm> {
                       error: e,
                       stackTrace: stackTrace,
                     );
+
+                    await Sentry.captureException(
+                      e,
+                      stackTrace: stackTrace,
+                      hint: Hint.withMap({
+                        'message': 'Error during sign in process',
+                      }),
+                    );
+
                     String errorMessage = 'Failed to sign in.';
                     if (e is SocketException) {
                       errorMessage =
                           '$errorMessage\nCheck internet connection and try again';
                     }
-                    // Show error to user
+                    
                     scaffoldMessengerState.showSnackBar(
                       SnackBar(
                         content: Text(errorMessage),

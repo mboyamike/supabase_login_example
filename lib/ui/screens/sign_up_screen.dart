@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../helpers/helpers.dart';
 import '../../providers/providers.dart';
@@ -129,7 +130,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
                   final password = _passwordController.text.trim();
                   final scaffoldMessengerState = ScaffoldMessenger.of(context);
                   final router = context.router;
-                  
+
                   try {
                     final response = await ref
                         .read(authenticationNotifierProvider.notifier)
@@ -146,6 +147,16 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
                       error: e,
                       stackTrace: stackTrace,
                     );
+
+                    
+                    Sentry.captureException(
+                      e,
+                      stackTrace: stackTrace,
+                      hint: Hint.withMap({
+                        'message': 'Error during user sign up',
+                      }),
+                    );
+
                     String errorMessage = 'Failed to sign up.';
                     if (e is SocketException) {
                       errorMessage =
