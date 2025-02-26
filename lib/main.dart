@@ -6,6 +6,9 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_login_example/helpers/provider_observer.dart';
 import 'package:supabase_login_example/providers/authentication_notifier_provider.dart';
+import 'package:supabase_login_example/ui/router/app_router.gr.dart';
+import 'package:supabase_login_example/ui/screens/sign_up_screen.dart';
+import 'package:supabase_login_example/ui/screens/splash_screen.dart';
 import 'package:supabase_login_example/ui/ui.dart';
 
 import 'helpers/helpers.dart';
@@ -60,7 +63,31 @@ class MainApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen(
       authenticationNotifierProvider,
-      ((_, curr) => logger.t('UserAsync $curr')),
+      ((_, current) {
+        // This listener acts as a routeguard, ensuring that if the user is not
+        // logged in, they are redirected to the splash page
+        logger.t('UserAsync $current');
+
+        if (current is! AsyncData) {
+          return;
+        }
+
+        final user = current.valueOrNull;
+        if (user != null) {
+          return;
+        }
+
+        final currentPath = router.routeData.path;
+        final initialAndAuthPaths = [
+          SplashScreen.path,
+          SignInScreen.path,
+          SignUpScreen.path
+        ];
+
+        if (!initialAndAuthPaths.contains(currentPath)) {
+          router.replaceAll([const SplashRoute()]);
+        }
+      }),
     );
 
     return MaterialApp.router(

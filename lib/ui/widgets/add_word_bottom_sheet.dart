@@ -29,7 +29,8 @@ class _AddWordBottomSheetState extends ConsumerState<AddWordBottomSheet> {
     final navigator = Navigator.of(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final wordsNotifier = ref.read(wordsNotifierProvider.notifier);
-
+    final word = _wordController.text.trim();
+    final spacing = context.spacing;
     try {
       navigator.pop();
       await wordsNotifier.addWord(
@@ -48,9 +49,32 @@ class _AddWordBottomSheetState extends ConsumerState<AddWordBottomSheet> {
           {'screen': 'add_word_bottom_sheet'},
         ),
       );
+
       scaffoldMessenger.showSnackBar(
         SnackBar(
-          content: Text('Failed to add word: ${e.toString()}'),
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Failed to add $word'),
+              SizedBox(width: spacing.xxs),
+              TextButton(
+                onPressed: () async {
+                  try {
+                    await wordsNotifier.addWord(
+                      word: _wordController.text.trim(),
+                    );
+                  } catch (e) {
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to add $word. Try again later'),
+                      ),
+                    );
+                  }
+                },
+                child: const Text('Retry'),
+              )
+            ],
+          ),
         ),
       );
     }

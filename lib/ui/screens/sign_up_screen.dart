@@ -62,6 +62,8 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _passwordFocusNode = FocusNode();
+  final _confirmPasswordFocusNode = FocusNode();
   bool _isLoading = false;
 
   @override
@@ -69,7 +71,67 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _passwordFocusNode.dispose();
+    _confirmPasswordFocusNode.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleSignUp() async {
+    if (_isLoading) {
+      return;
+    }
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+      final scaffoldMessengerState = ScaffoldMessenger.of(context);
+      final router = context.router;
+
+      try {
+        final response =
+            await ref.read(authenticationNotifierProvider.notifier).signUp(
+                  email: email,
+                  password: password,
+                );
+        if (response.user != null && mounted) {
+          router.replace(const HomeRoute());
+        }
+      } catch (e, stackTrace) {
+        logger.e(
+          'Error signing up',
+          error: e,
+          stackTrace: stackTrace,
+        );
+
+        Sentry.captureException(
+          e,
+          stackTrace: stackTrace,
+          hint: Hint.withMap({
+            'message': 'Error during user sign up',
+          }),
+        );
+
+        String errorMessage = 'Failed to sign up.';
+        if (e is SocketException) {
+          errorMessage =
+              '$errorMessage Check your internet connection and try again';
+        }
+        scaffoldMessengerState.showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+          ),
+        );
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
   }
 
   @override
@@ -91,19 +153,33 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
                 labelText: 'Email',
               ),
               validator: Validators.emailValidator,
+              textInputAction: TextInputAction.next,
+              onTapOutside: (_) => FocusScope.of(context).unfocus(),
+              onFieldSubmitted: (_) {
+                FocusScope.of(context).requestFocus(_passwordFocusNode);
+              },
+              autofillHints: const [AutofillHints.email],
             ),
             SizedBox(height: spacing.md),
             TextFormField(
               controller: _passwordController,
+              focusNode: _passwordFocusNode,
               obscureText: true,
               decoration: const InputDecoration(
                 labelText: 'Password',
               ),
               validator: Validators.passwordValidator,
+              textInputAction: TextInputAction.next,
+              onTapOutside: (_) => FocusScope.of(context).unfocus(),
+              autofillHints: const [AutofillHints.newPassword],
+              onFieldSubmitted: (_) {
+                FocusScope.of(context).requestFocus(_confirmPasswordFocusNode);
+              },
             ),
             SizedBox(height: spacing.md),
             TextFormField(
               controller: _confirmPasswordController,
+              focusNode: _confirmPasswordFocusNode,
               obscureText: true,
               decoration: const InputDecoration(
                 labelText: 'Confirm Password',
@@ -114,68 +190,14 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
                 }
                 return Validators.passwordValidator(value);
               },
+              textInputAction: TextInputAction.done,
+              onTapOutside: (_) => FocusScope.of(context).unfocus(),
+              autofillHints: const [AutofillHints.newPassword],
+              onFieldSubmitted: (_) => _handleSignUp(),
             ),
             SizedBox(height: spacing.lg),
             ElevatedButton(
-              onPressed: () async {
-                if (_isLoading) {
-                  return;
-                }
-                if (_formKey.currentState!.validate()) {
-                  setState(() {
-                    _isLoading = true;
-                  });
-
-                  final email = _emailController.text.trim();
-                  final password = _passwordController.text.trim();
-                  final scaffoldMessengerState = ScaffoldMessenger.of(context);
-                  final router = context.router;
-
-                  try {
-                    final response = await ref
-                        .read(authenticationNotifierProvider.notifier)
-                        .signUp(
-                          email: email,
-                          password: password,
-                        );
-                    if (response.user != null && mounted) {
-                      router.replace(const HomeRoute());
-                    }
-                  } catch (e, stackTrace) {
-                    logger.e(
-                      'Error signing up',
-                      error: e,
-                      stackTrace: stackTrace,
-                    );
-
-                    
-                    Sentry.captureException(
-                      e,
-                      stackTrace: stackTrace,
-                      hint: Hint.withMap({
-                        'message': 'Error during user sign up',
-                      }),
-                    );
-
-                    String errorMessage = 'Failed to sign up.';
-                    if (e is SocketException) {
-                      errorMessage =
-                          '$errorMessage Check your internet connection and try again';
-                    }
-                    scaffoldMessengerState.showSnackBar(
-                      SnackBar(
-                        content: Text(errorMessage),
-                      ),
-                    );
-                  } finally {
-                    if (mounted) {
-                      setState(() {
-                        _isLoading = false;
-                      });
-                    }
-                  }
-                }
-              },
+              onPressed: _handleSignUp,
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: spacing.sm),
                 child: Row(
@@ -205,7 +227,9 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
                   style: textTheme.bodyMedium,
                 ),
                 TextButton(
-                  onPressed: () => context.router.replace(const SignInRoute()),
+                  onPressed: () => context.router.replaceAll(
+                    [const SignInRoute()],
+                  ),
                   child: Text(
                     'Sign In',
                     style: textTheme.bodyMedium?.copyWith(

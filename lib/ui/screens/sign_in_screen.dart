@@ -61,13 +61,75 @@ class _SignInFormState extends ConsumerState<SignInForm> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _passwordFocusNode = FocusNode();
   bool _isLoading = false;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleSignIn() async {
+    if (_isLoading) {
+      return;
+    }
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+      final scaffoldMessengerState = ScaffoldMessenger.of(context);
+      final router = context.router;
+
+      try {
+        final response =
+            await ref.read(authenticationNotifierProvider.notifier).signIn(
+                  email: email,
+                  password: password,
+                );
+
+        if (response.user != null && mounted) {
+          router.replaceAll([const HomeRoute()]);
+        }
+      } catch (e, stackTrace) {
+        logger.e(
+          'Error signing in',
+          error: e,
+          stackTrace: stackTrace,
+        );
+
+        await Sentry.captureException(
+          e,
+          stackTrace: stackTrace,
+          hint: Hint.withMap({
+            'message': 'Error during sign in process',
+          }),
+        );
+
+        String errorMessage = 'Failed to sign in.';
+        if (e is SocketException) {
+          errorMessage =
+              '$errorMessage\nCheck internet connection and try again';
+        }
+
+        scaffoldMessengerState.showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+          ),
+        );
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
   }
 
   @override
@@ -89,78 +151,30 @@ class _SignInFormState extends ConsumerState<SignInForm> {
                 labelText: 'Email',
               ),
               validator: Validators.emailValidator,
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.email],
+              onTapOutside: (_) => FocusScope.of(context).unfocus(),
+              onFieldSubmitted: (_) {
+                FocusScope.of(context).requestFocus(_passwordFocusNode);
+              },
             ),
             SizedBox(height: spacing.md),
             TextFormField(
               controller: _passwordController,
+              focusNode: _passwordFocusNode,
               obscureText: true,
               decoration: const InputDecoration(
                 labelText: 'Password',
               ),
+              textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.password],
+              onTapOutside: (_) => FocusScope.of(context).unfocus(),
+              onFieldSubmitted: (_) => _handleSignIn(),
               validator: Validators.passwordValidator,
             ),
             SizedBox(height: spacing.lg),
             ElevatedButton(
-              onPressed: () async {
-                if (_isLoading) {
-                  return;
-                }
-                if (_formKey.currentState!.validate()) {
-                  setState(() {
-                    _isLoading = true;
-                  });
-
-                  final email = _emailController.text.trim();
-                  final password = _passwordController.text.trim();
-                  final scaffoldMessengerState = ScaffoldMessenger.of(context);
-                  final router = context.router;
-
-                  try {
-                    final response = await ref
-                        .read(authenticationNotifierProvider.notifier)
-                        .signIn(
-                          email: email,
-                          password: password,
-                        );
-
-                    if (response.user != null && mounted) {
-                      router.replace(const HomeRoute());
-                    }
-                  } catch (e, stackTrace) {
-                    logger.e(
-                      'Error signing in',
-                      error: e,
-                      stackTrace: stackTrace,
-                    );
-
-                    await Sentry.captureException(
-                      e,
-                      stackTrace: stackTrace,
-                      hint: Hint.withMap({
-                        'message': 'Error during sign in process',
-                      }),
-                    );
-
-                    String errorMessage = 'Failed to sign in.';
-                    if (e is SocketException) {
-                      errorMessage =
-                          '$errorMessage\nCheck internet connection and try again';
-                    }
-                    
-                    scaffoldMessengerState.showSnackBar(
-                      SnackBar(
-                        content: Text(errorMessage),
-                      ),
-                    );
-                  } finally {
-                    if (mounted) {
-                      setState(() {
-                        _isLoading = false;
-                      });
-                    }
-                  }
-                }
-              },
+              onPressed: _handleSignIn,
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: spacing.sm),
                 child: Row(
