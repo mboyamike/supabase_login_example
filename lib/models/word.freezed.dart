@@ -22,6 +22,7 @@ Word _$WordFromJson(Map<String, dynamic> json) {
 mixin _$Word {
   int get id => throw _privateConstructorUsedError;
   String get word => throw _privateConstructorUsedError;
+  @JsonKey(name: 'user_id')
   String get userID => throw _privateConstructorUsedError;
 
   /// Serializes this Word to a JSON map.
@@ -38,7 +39,7 @@ abstract class $WordCopyWith<$Res> {
   factory $WordCopyWith(Word value, $Res Function(Word) then) =
       _$WordCopyWithImpl<$Res, Word>;
   @useResult
-  $Res call({int id, String word, String userID});
+  $Res call({int id, String word, @JsonKey(name: 'user_id') String userID});
 }
 
 /// @nodoc
@@ -84,7 +85,7 @@ abstract class _$$WordImplCopyWith<$Res> implements $WordCopyWith<$Res> {
       __$$WordImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int id, String word, String userID});
+  $Res call({int id, String word, @JsonKey(name: 'user_id') String userID});
 }
 
 /// @nodoc
@@ -124,7 +125,9 @@ class __$$WordImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$WordImpl implements _Word {
   const _$WordImpl(
-      {required this.id, required this.word, required this.userID});
+      {required this.id,
+      required this.word,
+      @JsonKey(name: 'user_id') required this.userID});
 
   factory _$WordImpl.fromJson(Map<String, dynamic> json) =>
       _$$WordImplFromJson(json);
@@ -134,6 +137,7 @@ class _$WordImpl implements _Word {
   @override
   final String word;
   @override
+  @JsonKey(name: 'user_id')
   final String userID;
 
   @override
@@ -175,7 +179,7 @@ abstract class _Word implements Word {
   const factory _Word(
       {required final int id,
       required final String word,
-      required final String userID}) = _$WordImpl;
+      @JsonKey(name: 'user_id') required final String userID}) = _$WordImpl;
 
   factory _Word.fromJson(Map<String, dynamic> json) = _$WordImpl.fromJson;
 
@@ -184,6 +188,7 @@ abstract class _Word implements Word {
   @override
   String get word;
   @override
+  @JsonKey(name: 'user_id')
   String get userID;
 
   /// Create a copy of Word
