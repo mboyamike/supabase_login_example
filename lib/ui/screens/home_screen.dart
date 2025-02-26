@@ -43,21 +43,22 @@ class _HomeBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final wordsAsync = ref.watch(wordsNotifierProvider);
 
-    return wordsAsync.when(
-      data: (words) => WordsList(words: words),
-      loading: () => const WordsList(words: [], isLoading: true),
-      error: (error, stackTrace) {
-        logger.e(
-          'Error with wordsNotifierProvider',
-          stackTrace: stackTrace,
-          error: error,
-        );
-        return ErrorView(
-          errorMessage:
-              'Failed to fetch words.\nCheck your internet connection',
-          onRetry: () => ref.invalidate(wordsNotifierProvider),
-        );
-      },
-    );
+    return switch (wordsAsync) {
+      AsyncData(value: final words) => WordsList(words: words),
+      AsyncError(:final error, :final stackTrace, isLoading: false) =>
+        Builder(builder: (context) {
+          logger.e(
+            'Error with wordsNotifierProvider',
+            stackTrace: stackTrace,
+            error: error,
+          );
+          return ErrorView(
+            errorMessage:
+                'Failed to fetch words.\nCheck your internet connection',
+            onRetry: () => ref.invalidate(wordsNotifierProvider),
+          );
+        }),
+      _ => const WordsList(words: [], isLoading: true),
+    };
   }
 }
