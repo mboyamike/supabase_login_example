@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -14,44 +16,54 @@ import 'package:supabase_login_example/ui/ui.dart';
 import 'helpers/helpers.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  runZonedGuarded(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+      await dotenv.load();
+      final projectURL = dotenv.get('PROJECT_URL');
+      final apiKey = dotenv.get('API_KEY');
+      await Supabase.initialize(url: projectURL, anonKey: apiKey);
 
-  await dotenv.load();
-  final projectURL = dotenv.get('PROJECT_URL');
-  final apiKey = dotenv.get('API_KEY');
-  await Supabase.initialize(url: projectURL, anonKey: apiKey);
-
-  await SentryFlutter.init(
-    (options) {
-      options.dsn = dotenv.get('SENTRY_DSN');
-      options.tracesSampleRate = 0.2;
-      options.profilesSampleRate = 1.0;
-    },
-    // ignore: missing_provider_scope
-    appRunner: () => runApp(
-      SentryWidget(
-        child: ProviderScope(
-          observers: const [
-            SentryProviderObserver(),
-          ],
-          child: MainApp(),
+      await SentryFlutter.init(
+        (options) {
+          options.dsn = dotenv.get('SENTRY_DSN');
+          options.tracesSampleRate = 0.2;
+          options.profilesSampleRate = 1.0;
+        },
+        // ignore: missing_provider_scope
+        appRunner: () => runApp(
+          SentryWidget(
+            child: ProviderScope(
+              observers: const [
+                SentryProviderObserver(),
+              ],
+              child: MainApp(),
+            ),
+          ),
         ),
-      ),
-    ),
+      );
+
+      FlutterError.onError = (FlutterErrorDetails details) {
+        FlutterError.presentError(details);
+        Sentry.captureException(
+          details.exception,
+          stackTrace: details.stack,
+        );
+      };
+
+      PlatformDispatcher.instance.onError = (error, stack) {
+        Sentry.captureException(error, stackTrace: stack);
+        return true;
+      };
+    },
+    (error, stackTrace) {
+      logger.e(
+        'Error on zone Guarded',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    },
   );
-
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    Sentry.captureException(
-      details.exception,
-      stackTrace: details.stack,
-    );
-  };
-
-  PlatformDispatcher.instance.onError = (error, stack) {
-    Sentry.captureException(error, stackTrace: stack);
-    return true;
-  };
 }
 
 class MainApp extends ConsumerWidget {
