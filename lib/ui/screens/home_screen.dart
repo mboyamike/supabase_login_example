@@ -65,19 +65,17 @@ class _HomeBody extends ConsumerWidget {
         final previousValue = previous?.value ?? [];
         final currentValue = current.value ?? [];
 
-        if (previousValue.length != currentValue.length + 1) {
-          return;
-        }
+        if (currentValue.length == previousValue.length + 1) {
+          final currentWordCount = currentValue.length;
+          final congratulatoryCounts = [5, 12, 17, 21, 25];
 
-        final currentWordCount = currentValue.length;
-        final congratulatoryCounts = [5, 12, 17, 21, 25];
-
-        if (congratulatoryCounts.contains(currentWordCount)) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('You have $currentWordCount words!'),
-            ),
-          );
+          if (congratulatoryCounts.contains(currentWordCount)) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('You have $currentWordCount words!'),
+              ),
+            );
+          }
         }
       },
     );
