@@ -1,2 +1,2 @@
 export 'authentication_notifier_provider.dart';
-export 'global/global.dart';
+export 'words_notifier_provider.dart';

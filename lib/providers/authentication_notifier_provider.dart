@@ -7,36 +7,33 @@ part 'authentication_notifier_provider.g.dart';
 @riverpod
 class AuthenticationNotifier extends _$AuthenticationNotifier {
   @override
-  Stream<User?> build() async* {
+  Stream<User?> build() {
     final authenticationRepository =
-        await ref.watch(authenticationRepositoryProvider.future);
+        ref.watch(authenticationRepositoryProvider);
     final userStream = authenticationRepository
         .onAuthStateChange()
         .map((state) => state.session?.user);
-    yield* userStream;
+    return userStream;
   }
 
   Future<AuthResponse> signUp({
     required String email,
     required String password,
-  }) async {
-    final authenticationRepository =
-        await ref.read(authenticationRepositoryProvider.future);
+  }) {
+    final authenticationRepository = ref.read(authenticationRepositoryProvider);
     return authenticationRepository.signUp(email: email, password: password);
   }
 
   Future<AuthResponse> signIn({
     required String email,
     required String password,
-  }) async {
-    final authenticationRepository =
-        await ref.read(authenticationRepositoryProvider.future);
+  }) {
+    final authenticationRepository = ref.read(authenticationRepositoryProvider);
     return authenticationRepository.signIn(email: email, password: password);
   }
 
-  Future<void> signOut() async {
-    final authenticationRepository =
-        await ref.read(authenticationRepositoryProvider.future);
+  Future<void> signOut() {
+    final authenticationRepository = ref.read(authenticationRepositoryProvider);
     return authenticationRepository.signOut();
   }
 }

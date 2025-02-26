@@ -10,20 +10,23 @@ part 'words_notifier_provider.g.dart';
 class WordsNotifier extends _$WordsNotifier {
   @override
   Stream<List<Word>> build() async* {
-    final wordsRepository = await ref.watch(wordsRepositoryProvider.future);
-    final user = await ref.watch(authenticationNotifierProvider.future);
-    if (user == null) {
+    final wordsRepository = ref.watch(wordsRepositoryProvider);
+    final userID = await ref.watch(
+      authenticationNotifierProvider.selectAsync((user) => user?.id),
+    );
+    
+    if (userID == null) {
       throw Exception('You need to be signed in to fetch favorite words');
     }
-    
-    yield* wordsRepository.getWords(userID: user.id).map(
+
+    yield* wordsRepository.getWords(userID: userID).map(
           (words) => words.toList(),
         );
   }
 
   Future<void> addWord({required String word}) async {
     final user = await ref.read(authenticationNotifierProvider.future);
-    final wordsRepository = await ref.read(wordsRepositoryProvider.future);
+    final wordsRepository = ref.read(wordsRepositoryProvider);
 
     if (user == null) {
       throw Exception('Must be signed in to add a word');
@@ -33,7 +36,7 @@ class WordsNotifier extends _$WordsNotifier {
   }
 
   Future<void> deleteWord({required int id}) async {
-    final wordsRepository = await ref.read(wordsRepositoryProvider.future);
+    final wordsRepository = ref.read(wordsRepositoryProvider);
     wordsRepository.deleteWord(id: id);
   }
 }

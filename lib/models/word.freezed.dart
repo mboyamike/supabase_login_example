@@ -21,7 +21,9 @@ Word _$WordFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$Word {
   int get id => throw _privateConstructorUsedError;
-  String get word => throw _privateConstructorUsedError;
+  String get word =>
+      throw _privateConstructorUsedError; // I would ideally set the casing in the build.yaml if certain that all
+// fields would use snake_case
   @JsonKey(name: 'user_id')
   String get userID => throw _privateConstructorUsedError;
 
@@ -136,6 +138,8 @@ class _$WordImpl implements _Word {
   final int id;
   @override
   final String word;
+// I would ideally set the casing in the build.yaml if certain that all
+// fields would use snake_case
   @override
   @JsonKey(name: 'user_id')
   final String userID;
@@ -186,7 +190,9 @@ abstract class _Word implements Word {
   @override
   int get id;
   @override
-  String get word;
+  String
+      get word; // I would ideally set the casing in the build.yaml if certain that all
+// fields would use snake_case
   @override
   @JsonKey(name: 'user_id')
   String get userID;

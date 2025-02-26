@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:supabase_login_example/providers/providers.dart';
 
 import '../models/models.dart';
 
@@ -41,7 +40,7 @@ class WordsRepository {
 }
 
 @riverpod
-Future<WordsRepository> wordsRepository(Ref ref) async {
-  final supabase = await ref.watch(supabaseProvider.future);
-  return WordsRepository(supabaseClient: supabase.client);
+WordsRepository wordsRepository(Ref ref) {
+  final supabaseClient = Supabase.instance.client;
+  return WordsRepository(supabaseClient: supabaseClient);
 }

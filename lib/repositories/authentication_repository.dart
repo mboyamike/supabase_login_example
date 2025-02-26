@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:supabase_login_example/providers/providers.dart';
 
 part 'authentication_repository.g.dart';
 
@@ -30,7 +29,7 @@ class AuthenticationRepository {
 }
 
 @riverpod
-Future<AuthenticationRepository> authenticationRepository(Ref ref) async {
-  final supabase = await ref.watch(supabaseProvider.future);
-  return AuthenticationRepository(supabaseAuth: supabase.client.auth);
+AuthenticationRepository authenticationRepository(Ref ref) {
+  final supabaseAuth = Supabase.instance.client.auth;
+  return AuthenticationRepository(supabaseAuth: supabaseAuth);
 }

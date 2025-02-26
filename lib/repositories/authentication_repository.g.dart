@@ -7,12 +7,12 @@ part of 'authentication_repository.dart';
 // **************************************************************************
 
 String _$authenticationRepositoryHash() =>
-    r'd9761f4e39aba71c215c22f76450c737476c2577';
+    r'4cc93ccd4acef40031c5dcdecb92e529161aff39';
 
 /// See also [authenticationRepository].
 @ProviderFor(authenticationRepository)
 final authenticationRepositoryProvider =
-    AutoDisposeFutureProvider<AuthenticationRepository>.internal(
+    AutoDisposeProvider<AuthenticationRepository>.internal(
   authenticationRepository,
   name: r'authenticationRepositoryProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -25,6 +25,6 @@ final authenticationRepositoryProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AuthenticationRepositoryRef
-    = AutoDisposeFutureProviderRef<AuthenticationRepository>;
+    = AutoDisposeProviderRef<AuthenticationRepository>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
