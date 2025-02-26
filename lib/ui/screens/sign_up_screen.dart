@@ -65,6 +65,8 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
   final _passwordFocusNode = FocusNode();
   final _confirmPasswordFocusNode = FocusNode();
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   @override
   void dispose() {
@@ -165,25 +167,50 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
               TextFormField(
                 controller: _passwordController,
                 focusNode: _passwordFocusNode,
-                obscureText: true,
-                decoration: const InputDecoration(
+                obscureText: !_isPasswordVisible,
+                decoration: InputDecoration(
                   labelText: 'Password',
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
                 ),
                 validator: Validators.passwordValidator,
                 textInputAction: TextInputAction.next,
                 onTapOutside: (_) => FocusScope.of(context).unfocus(),
                 autofillHints: const [AutofillHints.newPassword],
                 onFieldSubmitted: (_) {
-                  FocusScope.of(context).requestFocus(_confirmPasswordFocusNode);
+                  FocusScope.of(context)
+                      .requestFocus(_confirmPasswordFocusNode);
                 },
               ),
               SizedBox(height: spacing.md),
               TextFormField(
                 controller: _confirmPasswordController,
                 focusNode: _confirmPasswordFocusNode,
-                obscureText: true,
-                decoration: const InputDecoration(
+                obscureText: !_isConfirmPasswordVisible,
+                decoration: InputDecoration(
                   labelText: 'Confirm Password',
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isConfirmPasswordVisible
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                      });
+                    },
+                  ),
                 ),
                 validator: (value) {
                   if (value != _passwordController.text) {

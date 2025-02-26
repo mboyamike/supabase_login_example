@@ -63,6 +63,7 @@ class _SignInFormState extends ConsumerState<SignInForm> {
   final _passwordController = TextEditingController();
   final _passwordFocusNode = FocusNode();
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
 
   @override
   void dispose() {
@@ -70,6 +71,12 @@ class _SignInFormState extends ConsumerState<SignInForm> {
     _passwordController.dispose();
     _passwordFocusNode.dispose();
     super.dispose();
+  }
+
+  void _togglePasswordVisibility() {
+    setState(() {
+      _isPasswordVisible = !_isPasswordVisible;
+    });
   }
 
   Future<void> _handleSignIn() async {
@@ -164,9 +171,17 @@ class _SignInFormState extends ConsumerState<SignInForm> {
               TextFormField(
                 controller: _passwordController,
                 focusNode: _passwordFocusNode,
-                obscureText: true,
-                decoration: const InputDecoration(
+                obscureText: !_isPasswordVisible,
+                decoration: InputDecoration(
                   labelText: 'Password',
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: _togglePasswordVisibility,
+                  ),
                 ),
                 textInputAction: TextInputAction.done,
                 autofillHints: const [AutofillHints.password],
@@ -212,7 +227,7 @@ class _SignInFormState extends ConsumerState<SignInForm> {
                     child: Text(
                       'Sign Up',
                       style: textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
+                        color: theme.colorScheme.primary,
                       ),
                     ),
                   ),
