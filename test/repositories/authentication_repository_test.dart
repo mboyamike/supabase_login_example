@@ -130,7 +130,7 @@ void main() {
             expiresIn: 3600,
           ),
         ),
-        AuthState(AuthChangeEvent.signedOut, null),
+        const AuthState(AuthChangeEvent.signedOut, null),
       ];
 
       when(() => mockSupabaseAuth.onAuthStateChange)
