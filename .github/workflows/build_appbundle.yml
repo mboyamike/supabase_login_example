@@ -39,6 +39,9 @@ jobs:
       - name: Run Flutter analyze
         run: flutter analyze
 
+      - name: Run Flutter tests
+        run: flutter test
+
       - name: Build App Bundle
         run: flutter build appbundle --release
 
